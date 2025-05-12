@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jail Rasan Management System</title>
     {% block styles %}
-        {{ bootstrap.load_css() }}
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {{ bootstrap.load_css() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     {% endblock %}
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
@@ -21,6 +23,10 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('add_record') }}">Add New Record</a>
                     </li>
+                    <!-- In the navbar, add this to the ul.navbar-nav -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('stock_list') }}">Stock Management</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -28,23 +34,24 @@
 
     <div class="container mt-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show">
-                        {{ message }}
-                        <button type="button" class="close" data-dismiss="alert">
-                            <span>&times;</span>
-                        </button>
-                    </div>
-                {% endfor %}
-            {% endif %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+        {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
     </div>
 
     {% block scripts %}
-        {{ bootstrap.load_js() }}
+    {{ bootstrap.load_js() }}
     {% endblock %}
 </body>
+
 </html>

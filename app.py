@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_bootstrap import Bootstrap
 from datetime import datetime
-from models import db, RasanRecord
+from models import db, RasanRecord, StockItem  # Make sure to import StockItem
 import os
 
 app = Flask(__name__)
@@ -79,6 +79,61 @@ def delete_record(id):
     db.session.commit()
     flash('Record deleted successfully!', 'success')
     return redirect(url_for('index'))
+
+@app.route('/stock')
+def stock_list():
+    items = StockItem.query.order_by(StockItem.date.desc()).all()
+    return render_template('stock/stock_list.html', items=items)
+
+@app.route('/stock/add', methods=['GET', 'POST'])
+def add_stock():
+    if request.method == 'POST':
+        try:
+            date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
+            item = StockItem(
+                date=date,
+                item_name=request.form['item_name'],
+                quantity=float(request.form['quantity']),
+                unit=request.form['unit'],
+                notes=request.form.get('notes', '')
+            )
+            
+            db.session.add(item)
+            db.session.commit()
+            flash('Stock item added successfully!', 'success')
+            return redirect(url_for('stock_list'))
+        except ValueError:
+            flash('Invalid date or quantity format!', 'danger')
+    
+    return render_template('stock/add_stock.html')
+
+@app.route('/stock/edit/<int:id>', methods=['GET', 'POST'])
+def edit_stock(id):
+    item = StockItem.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        try:
+            item.date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
+            item.item_name = request.form['item_name']
+            item.quantity = float(request.form['quantity'])
+            item.unit = request.form['unit']
+            item.notes = request.form.get('notes', '')
+            
+            db.session.commit()
+            flash('Stock item updated successfully!', 'success')
+            return redirect(url_for('stock_list'))
+        except ValueError:
+            flash('Invalid date or quantity format!', 'danger')
+    
+    return render_template('stock/edit_stock.html', item=item)
+
+@app.route('/stock/delete/<int:id>')
+def delete_stock(id):
+    item = StockItem.query.get_or_404(id)
+    db.session.delete(item)
+    db.session.commit()
+    flash('Stock item deleted successfully!', 'success')
+    return redirect(url_for('stock_list'))
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -26,3 +26,14 @@ class RasanRecord(db.Model):
     
     def medical_total(self):
         return self.medical_m + self.medical_f
+    
+class StockItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    item_name = db.Column(db.String(100), nullable=False)
+    quantity = db.Column(db.Float, nullable=False)
+    unit = db.Column(db.String(20), nullable=False)  # kg, ml, packets, etc.
+    notes = db.Column(db.Text)
+
+    def __repr__(self):
+        return f'<StockItem {self.item_name} - {self.quantity}{self.unit}>'
