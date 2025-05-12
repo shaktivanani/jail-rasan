@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2 class="mb-4">Edit Rasan Record</h2>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label>Date</label>
+            <input type="text" class="form-control" value="{{ record.date.strftime('%Y-%m-%d') }}" readonly>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <h4>Kedi</h4>
+                <div class="form-group">
+                    <label for="kedi_m">Male</label>
+                    <input type="number" class="form-control" id="kedi_m" name="kedi_m" value="{{ record.kedi_m }}" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="kedi_f">Female</label>
+                    <input type="number" class="form-control" id="kedi_f" name="kedi_f" value="{{ record.kedi_f }}" min="0" required>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <h4>Tifin</h4>
+                <div class="form-group">
+                    <label for="tifin_m">Male</label>
+                    <input type="number" class="form-control" id="tifin_m" name="tifin_m" value="{{ record.tifin_m }}" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="tifin_f">Female</label>
+                    <input type="number" class="form-control" id="tifin_f" name="tifin_f" value="{{ record.tifin_f }}" min="0" required>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <h4>Medical</h4>
+                <div class="form-group">
+                    <label for="medical_m">Male</label>
+                    <input type="number" class="form-control" id="medical_m" name="medical_m" value="{{ record.medical_m }}" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="medical_f">Female</label>
+                    <input type="number" class="form-control" id="medical_f" name="medical_f" value="{{ record.medical_f }}" min="0" required>
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Update Record</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+{% endblock %}
