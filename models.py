@@ -48,10 +48,11 @@ class ScaleEntry(db.Model):
     wednesday = db.Column(db.Float, default=0.0)
     thursday = db.Column(db.Float, default=0.0)
     friday = db.Column(db.Float, default=0.0)
-    saturday = db.Column(db.Float, default=0.0)
+    saturday = db.Column(db.Float, default=0.0) 
     sunday = db.Column(db.Float, default=0.0)
     
     stock_item = db.relationship('StockItem', backref='scale_entries')
+
 
     def __repr__(self):
         return f'<ScaleEntry {self.stock_item.item_name} {self.start_date}-{self.end_date}>'
