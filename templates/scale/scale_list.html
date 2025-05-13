@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Scale Entries</h2>
+    <a href="{{ url_for('add_scale') }}" class="btn btn-primary">Add New Entry</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Stock Item</th>
+            <th>Date Range</th>
+            <th>Mon</th>
+            <th>Tue</th>
+            <th>Wed</th>
+            <th>Thu</th>
+            <th>Fri</th>
+            <th>Sat</th>
+            <th>Sun</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in entries %}
+        <tr>
+            <td>{{ entry.stock_item.item_name }} ({{ entry.stock_item.unit }})</td>
+            <td>{{ entry.start_date }} to {{ entry.end_date }}</td>
+            <td>{{ "%.4f"|format(entry.monday) }}</td>
+            <td>{{ "%.4f"|format(entry.tuesday) }}</td>
+            <td>{{ "%.4f"|format(entry.wednesday) }}</td>
+            <td>{{ "%.4f"|format(entry.thursday) }}</td>
+            <td>{{ "%.4f"|format(entry.friday) }}</td>
+            <td>{{ "%.4f"|format(entry.saturday) }}</td>
+            <td>{{ "%.4f"|format(entry.sunday) }}</td>
+            <td>
+                <a href="{{ url_for('edit_scale', id=entry.id) }}" class="btn btn-sm btn-primary">Edit</a>
+                <a href="{{ url_for('delete_scale', id=entry.id) }}" class="btn btn-sm btn-danger" 
+                   onclick="return confirm('Delete this scale entry?')">Delete</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="10" class="text-center">No scale entries found</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

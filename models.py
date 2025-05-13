@@ -37,3 +37,21 @@ class StockItem(db.Model):
 
     def __repr__(self):
         return f'<StockItem {self.item_name} - {self.quantity}{self.unit}>'
+
+class ScaleEntry(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    stock_item_id = db.Column(db.Integer, db.ForeignKey('stock_item.id'), nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    monday = db.Column(db.Float, default=0.0)
+    tuesday = db.Column(db.Float, default=0.0)
+    wednesday = db.Column(db.Float, default=0.0)
+    thursday = db.Column(db.Float, default=0.0)
+    friday = db.Column(db.Float, default=0.0)
+    saturday = db.Column(db.Float, default=0.0)
+    sunday = db.Column(db.Float, default=0.0)
+    
+    stock_item = db.relationship('StockItem', backref='scale_entries')
+
+    def __repr__(self):
+        return f'<ScaleEntry {self.stock_item.item_name} {self.start_date}-{self.end_date}>'
