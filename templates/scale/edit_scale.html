@@ -31,13 +31,9 @@
         {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] %}
         <div class="form-group col-md-1">
             <label>{{ day|title }}</label>
-<<<<<<< HEAD
             <input type="number" step="0.001" class="form-control" 
-=======
-            <input type="number" step="0.0001" class="form-control" 
->>>>>>> 3d23f48482c48438e4fe7266a2a9efda7457a8b1
                    name="{{ day }}" 
-                   value="{{ "%.4f"|format(entry[day]) }}" 
+                   value="{{ "%.3f"|format(entry[day]) }}" 
                    required>
         </div>
         {% endfor %}
