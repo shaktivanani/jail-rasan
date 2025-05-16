@@ -1,49 +1,81 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Scale Entries</h2>
-    <a href="{{ url_for('add_scale') }}" class="btn btn-primary">Add New Entry</a>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Scale Entries</h2>
+        <a href="{{ url_for('add_scale') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Add New Entry
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Stock Item</th>
+                            <th>Date Range</th>
+                            <th class="text-center">Mon</th>
+                            <th class="text-center">Tue</th>
+                            <th class="text-center">Wed</th>
+                            <th class="text-center">Thu</th>
+                            <th class="text-center">Fri</th>
+                            <th class="text-center">Sat</th>
+                            <th class="text-center">Sun</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                        <tr>
+                            <td class="ps-3">{{ entry.stock_item.item_name }} <span class="text-muted">({{ entry.stock_item.unit }})</span></td>
+                            <td>{{ entry.start_date }} <span class="text-muted">to</span> {{ entry.end_date }}</td>
+                            <td class="text-center">{{ "%.3f"|format(entry.monday) }}</td>
+                            <td class="text-center">{{ "%.3f"|format(entry.tuesday) }}</td>
+                            <td class="text-center">{{ "%.3f"|format(entry.wednesday) }}</td>
+                            <td class="text-center">{{ "%.3f"|format(entry.thursday) }}</td>
+                            <td class="text-center">{{ "%.3f"|format(entry.friday) }}</td>
+                            <td class="text-center">{{ "%.3f"|format(entry.saturday) }}</td>
+                            <td class="text-center">{{ "%.3f"|format(entry.sunday) }}</td>
+                            <td class="text-end pe-3">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('edit_scale', id=entry.id) }}" 
+                                       class="btn btn-sm btn-outline-primary"
+                                       data-bs-toggle="tooltip" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{{ url_for('delete_scale', id=entry.id) }}" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       data-bs-toggle="tooltip" title="Delete"
+                                       onclick="return confirm('Delete this scale entry?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center py-4 text-muted">
+                                No scale entries found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Stock Item</th>
-            <th>Date Range</th>
-            <th>Mon</th>
-            <th>Tue</th>
-            <th>Wed</th>
-            <th>Thu</th>
-            <th>Fri</th>
-            <th>Sat</th>
-            <th>Sun</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for entry in entries %}
-        <tr>
-            <td>{{ entry.stock_item.item_name }} ({{ entry.stock_item.unit }})</td>
-            <td>{{ entry.start_date }} to {{ entry.end_date }}</td>
-            <td>{{ "%.3f"|format(entry.monday) }}</td>
-            <td>{{ "%.3f"|format(entry.tuesday) }}</td>
-            <td>{{ "%.3f"|format(entry.wednesday) }}</td>
-            <td>{{ "%.3f"|format(entry.thursday) }}</td>
-            <td>{{ "%.3f"|format(entry.friday) }}</td>
-            <td>{{ "%.3f"|format(entry.saturday) }}</td>
-            <td>{{ "%.3f"|format(entry.sunday) }}</td>
-            <td>
-                <a href="{{ url_for('edit_scale', id=entry.id) }}" class="btn btn-sm btn-primary">Edit</a>
-                <a href="{{ url_for('delete_scale', id=entry.id) }}" class="btn btn-sm btn-danger" 
-                   onclick="return confirm('Delete this scale entry?')">Delete</a>
-            </td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="10" class="text-center">No scale entries found</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<script>
+// Initialize Bootstrap tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
 {% endblock %}

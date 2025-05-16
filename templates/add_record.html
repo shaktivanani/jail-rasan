@@ -1,53 +1,117 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h2 class="mb-4">Add New Rasan Record</h2>
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white py-3">
+            <h2 class="h5 mb-0">Add New Rasan Record</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="needs-validation" novalidate>
+                <div class="mb-4">
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="date" name="date" required>
+                    <div class="invalid-feedback">
+                        Please select a valid date.
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <!-- Kedi Section -->
+                    <div class="col-md-4">
+                        <div class="border p-3 h-100">
+                            <h5 class="text-center mb-3 text-primary">Kedi</h5>
+                            <div class="mb-3">
+                                <label for="kedi_m" class="form-label">Male</label>
+                                <input type="number" class="form-control" id="kedi_m" name="kedi_m" 
+                                       value="0" min="0" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid number.
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="kedi_f" class="form-label">Female</label>
+                                <input type="number" class="form-control" id="kedi_f" name="kedi_f" 
+                                       value="0" min="0" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid number.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tifin Section -->
+                    <div class="col-md-4">
+                        <div class="border p-3 h-100">
+                            <h5 class="text-center mb-3 text-primary">Tifin</h5>
+                            <div class="mb-3">
+                                <label for="tifin_m" class="form-label">Male</label>
+                                <input type="number" class="form-control" id="tifin_m" name="tifin_m" 
+                                       value="0" min="0" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid number.
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tifin_f" class="form-label">Female</label>
+                                <input type="number" class="form-control" id="tifin_f" name="tifin_f" 
+                                       value="0" min="0" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid number.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Medical Section -->
+                    <div class="col-md-4">
+                        <div class="border p-3 h-100">
+                            <h5 class="text-center mb-3 text-primary">Medical</h5>
+                            <div class="mb-3">
+                                <label for="medical_m" class="form-label">Male</label>
+                                <input type="number" class="form-control" id="medical_m" name="medical_m" 
+                                       value="0" min="0" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid number.
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="medical_f" class="form-label">Female</label>
+                                <input type="number" class="form-control" id="medical_f" name="medical_f" 
+                                       value="0" min="0" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid number.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i> Save Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Enable form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.needs-validation');
     
-    <form method="POST">
-        <div class="form-group">
-            <label for="date">Date</label>
-            <input type="date" class="form-control" id="date" name="date" required>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-4">
-                <h4>Kedi</h4>
-                <div class="form-group">
-                    <label for="kedi_m">Male</label>
-                    <input type="number" class="form-control" id="kedi_m" name="kedi_m" value="0" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="kedi_f">Female</label>
-                    <input type="number" class="form-control" id="kedi_f" name="kedi_f" value="0" min="0" required>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <h4>Tifin</h4>
-                <div class="form-group">
-                    <label for="tifin_m">Male</label>
-                    <input type="number" class="form-control" id="tifin_m" name="tifin_m" value="0" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="tifin_f">Female</label>
-                    <input type="number" class="form-control" id="tifin_f" name="tifin_f" value="0" min="0" required>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <h4>Medical</h4>
-                <div class="form-group">
-                    <label for="medical_m">Male</label>
-                    <input type="number" class="form-control" id="medical_m" name="medical_m" value="0" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="medical_f">Female</label>
-                    <input type="number" class="form-control" id="medical_f" name="medical_f" value="0" min="0" required>
-                </div>
-            </div>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Save Record</button>
-        <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
-    </form>
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+});
+</script>
 {% endblock %}
