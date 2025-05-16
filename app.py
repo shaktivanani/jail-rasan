@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_bootstrap import Bootstrap
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import db, RasanRecord, StockItem, ScaleEntry  # Make sure to import StockItem
 import os
 
@@ -232,6 +232,79 @@ def delete_scale(id):
     db.session.commit()
     flash('Scale entry deleted successfully!', 'success')
     return redirect(url_for('scale_list'))
+
+@app.route('/stock_summary', methods=['GET', 'POST'])
+def stock_summary():
+    if request.method == 'POST':
+        try:
+            stock_item_id = int(request.form['stock_item'])
+            start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
+            end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d').date()
+            
+            # Get relevant data
+            stock_item = StockItem.query.get(stock_item_id)
+            scale_entries = ScaleEntry.query.filter(
+                ScaleEntry.stock_item_id == stock_item_id,
+                ScaleEntry.start_date <= end_date,
+                ScaleEntry.end_date >= start_date
+            ).all()
+            
+            rasan_records = RasanRecord.query.filter(
+                RasanRecord.date.between(start_date, end_date)
+            ).all()
+            
+            stock_entries = StockItem.query.filter(
+                StockItem.id == stock_item_id,
+                StockItem.date.between(start_date, end_date)
+            ).all()
+            
+            # Create date range
+            date_range = [start_date + timedelta(days=x) for x in range((end_date - start_date).days + 1)]
+            
+            # Calculate stock movements
+            report_data = []
+            opening_stock = stock_item.quantity  # Initial stock
+            
+            for date in date_range:
+                # Get daily scale
+                scale = next((entry for entry in scale_entries 
+                            if entry.start_date <= date <= entry.end_date), None)
+                
+                # Get daily rasan record
+                rasan = next((r for r in rasan_records if r.date == date), None)
+                
+                # Get daily stock additions
+                daily_stock = sum(entry.quantity for entry in stock_entries if entry.date == date)
+                
+                # Calculate values
+                total_stock = opening_stock + daily_stock
+                kedi_total = (rasan.kedi_total() - rasan.tifin_total() - rasan.medical_total()) if rasan else 0
+                used_stock = kedi_total * getattr(scale, date.strftime('%A').lower(), 0) if scale else 0
+                closing_stock = total_stock - used_stock
+                
+                report_data.append({
+                    'date': date,
+                    'day_name': date.strftime('%A'),
+                    'opening': opening_stock,
+                    'income': daily_stock,
+                    'total_stock': total_stock,
+                    'kedi_total': kedi_total,
+                    'scale': getattr(scale, date.strftime('%A').lower(), 0) if scale else 0,
+                    'used_stock': used_stock,
+                    'closing': closing_stock
+                })
+                
+                opening_stock = closing_stock
+                
+            return render_template('stock_summary.html', 
+                                 report_data=report_data,
+                                 stock_item=stock_item)
+            
+        except Exception as e:
+            flash(f'Error generating report: {str(e)}', 'danger')
+    
+    stock_items = StockItem.query.all()
+    return render_template('stock_summary_form.html', stock_items=stock_items)
 
 if __name__ == '__main__':
     app.run(debug=True)

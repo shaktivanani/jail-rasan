@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white py-3">
+            <h2 class="h5 mb-0">Stock Summary for {{ stock_item.item_name }}</h2>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Day</th>
+                            <th>Opening</th>
+                            <th>Income</th>
+                            <th>Total Stock</th>
+                            <th>Kedi Total</th>
+                            <th>Scale</th>
+                            <th>Used</th>
+                            <th>Closing</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in report_data %}
+                        <tr>
+                            <td>{{ data.date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ data.day_name }}</td>
+                            <td>{{ "%.2f"|format(data.opening) }}</td>
+                            <td>{{ "%.2f"|format(data.income) }}</td>
+                            <td>{{ "%.2f"|format(data.total_stock) }}</td>
+                            <td>{{ data.kedi_total }}</td>
+                            <td>{{ "%.4f"|format(data.scale) }}</td>
+                            <td>{{ "%.2f"|format(data.used_stock) }}</td>
+                            <td class="fw-bold">{{ "%.2f"|format(data.closing) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                No data available for selected period
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

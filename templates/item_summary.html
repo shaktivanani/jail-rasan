@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white py-3">
+            <h2 class="h5 mb-0">Item Stock Summary</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <select class="form-select" name="stock_item" required>
+                            <option value="">Select Stock Item</option>
+                            {% for item in stock_items %}
+                            <option value="{{ item.id }}">{{ item.item_name }} ({{ item.unit }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" class="form-control" name="start_date" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" class="form-control" name="end_date" required>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">Generate</button>
+                    </div>
+                </div>
+            </form>
+
+            {% if report %}
+            <div class="mt-4">
+                <h5 class="mb-3">{{ stock_item.item_name }} Summary ({{ start_date }} to {{ end_date }})</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Day</th>
+                                <th>Opening</th>
+                                <th>Incoming</th>
+                                <th>Total Stock</th>
+                                <th>Scale</th>
+                                <th>Used Stock</th>
+                                <th>Closing</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for day in report %}
+                            <tr>
+                                <td>{{ day.date }}</td>
+                                <td>{{ day.day_name }}</td>
+                                <td>{{ "%.2f"|format(day.opening) }}</td>
+                                <td>{{ "%.2f"|format(day.incoming) }}</td>
+                                <td>{{ "%.2f"|format(day.total_stock) }}</td>
+                                <td>{{ "%.3f"|format(day.scale) }}</td>
+                                <td>{{ "%.2f"|format(day.used_stock) }}</td>
+                                <td>{{ "%.2f"|format(day.closing) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
