@@ -333,12 +333,13 @@ def delete_scale(id):
 
 @app.route('/item_summary', methods=['GET', 'POST'])
 def item_summary():
+    stock_items = StockItem.query.order_by(StockItem.item_name).all()
+    
     if request.method == 'POST':
         try:
             stock_item_id = int(request.form['stock_item'])
             start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
             end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d').date()
-            
             # Get the selected item
             stock_item = StockItem.query.get_or_404(stock_item_id)
             
@@ -408,19 +409,14 @@ def item_summary():
                 
                 opening_stock = closing_stock
             
-            return render_template('item_summary_report.html',
+            return render_template('item_summary_report.html', 
                                  report_data=report_data,
-                                 stock_item=stock_item,
-                                 start_date=start_date,
-                                 end_date=end_date)
+                                 stock_item=stock_item)
             
         except Exception as e:
             flash(f'Error generating report: {str(e)}', 'danger')
-            return redirect(url_for('item_summary'))
     
-    stock_items = StockItem.query.order_by(StockItem.item_name).all()
     return render_template('item_summary_form.html', stock_items=stock_items)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
