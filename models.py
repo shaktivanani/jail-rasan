@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-
+from datetime import datetime
 db = SQLAlchemy()
 
 class RasanRecord(db.Model):
@@ -29,15 +29,25 @@ class RasanRecord(db.Model):
     
 class StockItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, nullable=False)
     item_name = db.Column(db.String(100), nullable=False)
-    quantity = db.Column(db.Float, nullable=False)
-    unit = db.Column(db.String(20), nullable=False)  # kg, ml, packets, etc.
-    notes = db.Column(db.Text)
-
+    description = db.Column(db.Text)
+    unit = db.Column(db.String(20), nullable=False)  # kg, g, l, ml, etc.
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
     def __repr__(self):
-        return f'<StockItem {self.item_name} - {self.quantity}{self.unit}>'
-
+        return f'<StockItem {self.item_name}>'
+    
+class StockInventory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    stock_item_id = db.Column(db.Integer, db.ForeignKey('stock_item.id'), nullable=False)
+    quantity = db.Column(db.Float, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    notes = db.Column(db.Text)
+    
+    stock_item = db.relationship('StockItem', backref='inventory')
+    
+    def __repr__(self):
+        return f'<StockInventory {self.stock_item.item_name} {self.quantity}{self.stock_item.unit}>'
 class ScaleEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     stock_item_id = db.Column(db.Integer, db.ForeignKey('stock_item.id'), nullable=False)

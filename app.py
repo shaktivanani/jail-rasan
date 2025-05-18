@@ -1,15 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_bootstrap import Bootstrap
 from datetime import datetime, timedelta
-from models import db, RasanRecord, StockItem, ScaleEntry  # Make sure to import StockItem
+from models import StockInventory, db, RasanRecord, StockItem, ScaleEntry  # Make sure to import StockItem
 import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rasan.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-bootstrap = Bootstrap(app)
 db.init_app(app)
 
 with app.app_context():
@@ -80,61 +77,117 @@ def delete_record(id):
     flash('Record deleted successfully!', 'success')
     return redirect(url_for('index'))
 
-@app.route('/stock')
-def stock_list():
-    items = StockItem.query.order_by(StockItem.date.desc()).all()
-    return render_template('stock/stock_list.html', items=items)
+# Stock Items CRUD
+@app.route('/stock_items')
+def stock_items():
+    items = StockItem.query.order_by(StockItem.item_name).all()
+    return render_template('stock_items/list.html', items=items)
 
-@app.route('/stock/add', methods=['GET', 'POST'])
-def add_stock():
+@app.route('/stock_items/add', methods=['GET', 'POST'])
+def add_stock_item():
     if request.method == 'POST':
         try:
-            date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
             item = StockItem(
-                date=date,
                 item_name=request.form['item_name'],
-                quantity=float(request.form['quantity']),
-                unit=request.form['unit'],
-                notes=request.form.get('notes', '')
+                description=request.form.get('description', ''),
+                unit=request.form['unit']
             )
-            
             db.session.add(item)
             db.session.commit()
             flash('Stock item added successfully!', 'success')
-            return redirect(url_for('stock_list'))
-        except ValueError:
-            flash('Invalid date or quantity format!', 'danger')
+            return redirect(url_for('stock_items'))
+        except Exception as e:
+            flash(f'Error: {str(e)}', 'danger')
     
-    return render_template('stock/add_stock.html')
+    return render_template('stock_items/add.html')
 
-@app.route('/stock/edit/<int:id>', methods=['GET', 'POST'])
-def edit_stock(id):
+@app.route('/stock_items/edit/<int:id>', methods=['GET', 'POST'])
+def edit_stock_item(id):
     item = StockItem.query.get_or_404(id)
-    
     if request.method == 'POST':
         try:
-            item.date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
             item.item_name = request.form['item_name']
-            item.quantity = float(request.form['quantity'])
+            item.description = request.form.get('description', '')
             item.unit = request.form['unit']
-            item.notes = request.form.get('notes', '')
-            
             db.session.commit()
             flash('Stock item updated successfully!', 'success')
-            return redirect(url_for('stock_list'))
-        except ValueError:
-            flash('Invalid date or quantity format!', 'danger')
+            return redirect(url_for('stock_items'))
+        except Exception as e:
+            flash(f'Error: {str(e)}', 'danger')
     
-    return render_template('stock/edit_stock.html', item=item)
+    return render_template('stock_items/edit.html', item=item)
 
-@app.route('/stock/delete/<int:id>')
-def delete_stock(id):
+@app.route('/stock_items/delete/<int:id>')
+def delete_stock_item(id):
     item = StockItem.query.get_or_404(id)
     db.session.delete(item)
     db.session.commit()
     flash('Stock item deleted successfully!', 'success')
-    return redirect(url_for('stock_list'))
+    return redirect(url_for('stock_items'))
 
+# Stock Inventory CRUD
+@app.route('/stock_inventory')
+def stock_inventory():
+    inventory = StockInventory.query.order_by(StockInventory.date.desc()).all()
+    return render_template('stock_inventory/list.html', inventory=inventory)
+
+@app.route('/stock_inventory/add', methods=['GET', 'POST'])
+def add_stock_inventory():
+    stock_items = StockItem.query.order_by(StockItem.item_name).all()
+    
+    if request.method == 'POST':
+        try:
+            entry = StockInventory(
+                stock_item_id=int(request.form['stock_item']),
+                quantity=float(request.form['quantity']),
+                date=datetime.strptime(request.form['date'], '%Y-%m-%d').date(),
+                notes=request.form.get('notes', '')
+            )
+            db.session.add(entry)
+            db.session.commit()
+            flash('Stock entry added successfully!', 'success')
+            return redirect(url_for('stock_inventory'))
+        except Exception as e:
+            flash(f'Error: {str(e)}', 'danger')
+    
+    return render_template('stock_inventory/add.html', stock_items=stock_items)
+
+@app.route('/stock_inventory/edit/<int:id>', methods=['GET', 'POST'])
+def edit_stock_inventory(id):
+    entry = StockInventory.query.get_or_404(id)
+    stock_items = StockItem.query.order_by(StockItem.item_name).all()
+    
+    if request.method == 'POST':
+        try:
+            entry.stock_item_id = int(request.form['stock_item'])
+            entry.quantity = float(request.form['quantity'])
+            entry.date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
+            entry.notes = request.form.get('notes', '')
+            db.session.commit()
+            flash('Stock entry updated successfully!', 'success')
+            return redirect(url_for('stock_inventory'))
+        except Exception as e:
+            flash(f'Error: {str(e)}', 'danger')
+    
+    return render_template('stock_inventory/edit.html', entry=entry, stock_items=stock_items)
+
+@app.route('/stock_inventory/delete/<int:id>')
+def delete_stock_inventory(id):
+    entry = StockInventory.query.get_or_404(id)
+    db.session.delete(entry)
+    db.session.commit()
+    flash('Stock entry deleted successfully!', 'success')
+    return redirect(url_for('stock_inventory'))
+
+@app.route('/stock_inventory/item/<int:item_id>')
+def stock_inventory_by_item(item_id):
+    item = StockItem.query.get_or_404(item_id)
+    inventory = StockInventory.query.filter_by(stock_item_id=item_id)\
+                   .order_by(StockInventory.date.desc())\
+                   .all()
+    return render_template('stock_inventory/list_by_item.html', 
+                         inventory=inventory, 
+                         item=item)
 @app.route('/scale')
 def scale_list():
     entries = ScaleEntry.query.all()

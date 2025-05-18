@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white py-3">
+            <h2 class="h5 mb-0">Edit Stock Item</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="needs-validation" novalidate>
+                <div class="mb-3">
+                    <label for="item_name" class="form-label">Item Name</label>
+                    <input type="text" class="form-control" id="item_name" name="item_name" 
+                           value="{{ item.item_name }}" required>
+                    <div class="invalid-feedback">
+                        Please provide an item name.
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description (Optional)</label>
+                    <textarea class="form-control" id="description" name="description" rows="2">{{ item.description or '' }}</textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="unit" class="form-label">Unit of Measurement</label>
+                    <select class="form-select" id="unit" name="unit" required>
+                        <option value="kg" {% if item.unit == 'kg' %}selected{% endif %}>Kilograms (kg)</option>
+                        <option value="g" {% if item.unit == 'g' %}selected{% endif %}>Grams (g)</option>
+                        <option value="l" {% if item.unit == 'l' %}selected{% endif %}>Liters (l)</option>
+                        <option value="ml" {% if item.unit == 'ml' %}selected{% endif %}>Milliliters (ml)</option>
+                        <option value="packets" {% if item.unit == 'packets' %}selected{% endif %}>Packets</option>
+                        <option value="pieces" {% if item.unit == 'pieces' %}selected{% endif %}>Pieces</option>
+                        <option value="boxes" {% if item.unit == 'boxes' %}selected{% endif %}>Boxes</option>
+                        <option value="other" {% if item.unit == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                    <div class="invalid-feedback">
+                        Please select a unit of measurement.
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('stock_items') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i> Update Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Enable form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.needs-validation');
+    
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+});
+</script>
+{% endblock %}
