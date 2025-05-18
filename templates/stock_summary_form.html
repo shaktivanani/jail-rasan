@@ -12,6 +12,7 @@
                     <div class="col-md-6">
                         <label class="form-label">Stock Item</label>
                         <select class="form-select" name="stock_item" required>
+                            <option value="" selected disabled>Select item</option>
                             {% for item in stock_items %}
                             <option value="{{ item.id }}">{{ item.item_name }} ({{ item.unit }})</option>
                             {% endfor %}
@@ -35,4 +36,15 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default dates (current month)
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    document.querySelector('input[name="start_date"]').valueAsDate = firstDay;
+    document.querySelector('input[name="end_date"]').valueAsDate = today;
+});
+</script>
 {% endblock %}

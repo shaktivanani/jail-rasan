@@ -15,6 +15,10 @@ with app.app_context():
 
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/kedi')
+def kedi():
     page = request.args.get('page', 1, type=int)
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
@@ -29,13 +33,13 @@ def index():
     
     pagination = query.paginate(page=page, per_page=10)
     
-    return render_template('index.html',
+    return render_template('kedi/list.html',
                          records=pagination.items,
                          pagination=pagination)
 
 
-@app.route('/add', methods=['GET', 'POST'])
-def add_record():
+@app.route('/kedi/add', methods=['GET', 'POST'])
+def add_kedi():
     if request.method == 'POST':
         date_str = request.form['date']
         try:
@@ -44,7 +48,7 @@ def add_record():
             # Check if record for this date already exists
             if RasanRecord.query.filter_by(date=date).first():
                 flash('A record for this date already exists!', 'danger')
-                return redirect(url_for('add_record'))
+                return redirect(url_for('add_kedi'))
             
             record = RasanRecord(
                 date=date,
@@ -59,14 +63,14 @@ def add_record():
             db.session.add(record)
             db.session.commit()
             flash('Record added successfully!', 'success')
-            return redirect(url_for('index'))
+            return redirect(url_for('kedi'))
         except ValueError:
             flash('Invalid date or number format!', 'danger')
     
-    return render_template('add_record.html')
+    return render_template('kedi/add.html')
 
-@app.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit_record(id):
+@app.route('/kedi/edit/<int:id>', methods=['GET', 'POST'])
+def edit_kedi(id):
     record = RasanRecord.query.get_or_404(id)
     
     if request.method == 'POST':
@@ -80,19 +84,19 @@ def edit_record(id):
             
             db.session.commit()
             flash('Record updated successfully!', 'success')
-            return redirect(url_for('index'))
+            return redirect(url_for('kedi'))
         except ValueError:
             flash('Invalid number format!', 'danger')
     
-    return render_template('edit_record.html', record=record)
+    return render_template('kedi/edit.html', record=record)
 
-@app.route('/delete/<int:id>')
-def delete_record(id):
+@app.route('/kedi/delete/<int:id>')
+def delete_kedi(id):
     record = RasanRecord.query.get_or_404(id)
     db.session.delete(record)
     db.session.commit()
     flash('Record deleted successfully!', 'success')
-    return redirect(url_for('index'))
+    return redirect(url_for('kedi'))
 
 # Stock Items CRUD
 @app.route('/stock_items')
@@ -327,78 +331,96 @@ def delete_scale(id):
     flash('Scale entry deleted successfully!', 'success')
     return redirect(url_for('scale_list'))
 
-@app.route('/stock_summary', methods=['GET', 'POST'])
-def stock_summary():
+@app.route('/item_summary', methods=['GET', 'POST'])
+def item_summary():
     if request.method == 'POST':
         try:
             stock_item_id = int(request.form['stock_item'])
             start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
             end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d').date()
             
-            # Get relevant data
-            stock_item = StockItem.query.get(stock_item_id)
+            # Get the selected item
+            stock_item = StockItem.query.get_or_404(stock_item_id)
+            
+            # Get all scale entries for this item in date range
             scale_entries = ScaleEntry.query.filter(
                 ScaleEntry.stock_item_id == stock_item_id,
                 ScaleEntry.start_date <= end_date,
                 ScaleEntry.end_date >= start_date
             ).all()
             
+            # Get all rasan records in date range
             rasan_records = RasanRecord.query.filter(
                 RasanRecord.date.between(start_date, end_date)
-            ).all()
+                .order_by(RasanRecord.date.asc())
+                .all())
             
-            stock_entries = StockItem.query.filter(
-                StockItem.id == stock_item_id,
-                StockItem.date.between(start_date, end_date)
+            # Get all stock entries for this item in date range
+            stock_entries = StockInventory.query.filter(
+                StockInventory.stock_item_id == stock_item_id,
+                StockInventory.date.between(start_date, end_date)
             ).all()
             
             # Create date range
             date_range = [start_date + timedelta(days=x) for x in range((end_date - start_date).days + 1)]
             
-            # Calculate stock movements
+            # Calculate daily stock movements
             report_data = []
-            opening_stock = stock_item.quantity  # Initial stock
+            opening_stock = stock_item.quantity  # Initial stock from item definition
             
             for date in date_range:
-                # Get daily scale
-                scale = next((entry for entry in scale_entries 
-                            if entry.start_date <= date <= entry.end_date), None)
-                
-                # Get daily rasan record
-                rasan = next((r for r in rasan_records if r.date == date), None)
-                
-                # Get daily stock additions
+                # Find stock additions for this date
                 daily_stock = sum(entry.quantity for entry in stock_entries if entry.date == date)
+                total_stock = opening_stock + daily_stock
+                
+                # Find scale for this date
+                scale_entry = next((entry for entry in scale_entries 
+                                  if entry.start_date <= date <= entry.end_date), None)
+                
+                # Find rasan record for this date
+                rasan_record = next((r for r in rasan_records if r.date == date), None)
                 
                 # Calculate values
-                total_stock = opening_stock + daily_stock
-                kedi_total = (rasan.kedi_total() - rasan.tifin_total() - rasan.medical_total()) if rasan else 0
-                used_stock = kedi_total * getattr(scale, date.strftime('%A').lower(), 0) if scale else 0
-                closing_stock = total_stock - used_stock
+                day_name = date.strftime('%A')
+                
+                if rasan_record:
+                    kedi_total = rasan_record.kedi_total() - rasan_record.tifin_total() - rasan_record.medical_total()
+                    scale_value = getattr(scale_entry, day_name.lower(), 0) if scale_entry else 0
+                    used_stock = kedi_total * scale_value
+                    closing_stock = total_stock - used_stock
+                else:
+                    kedi_total = 0
+                    scale_value = 0
+                    used_stock = 0
+                    closing_stock = total_stock
                 
                 report_data.append({
                     'date': date,
-                    'day_name': date.strftime('%A'),
+                    'day_name': day_name,
                     'opening': opening_stock,
                     'income': daily_stock,
                     'total_stock': total_stock,
                     'kedi_total': kedi_total,
-                    'scale': getattr(scale, date.strftime('%A').lower(), 0) if scale else 0,
+                    'scale_value': scale_value,
                     'used_stock': used_stock,
                     'closing': closing_stock
                 })
                 
                 opening_stock = closing_stock
-                
-            return render_template('stock_summary.html', 
+            
+            return render_template('item_summary_report.html',
                                  report_data=report_data,
-                                 stock_item=stock_item)
+                                 stock_item=stock_item,
+                                 start_date=start_date,
+                                 end_date=end_date)
             
         except Exception as e:
             flash(f'Error generating report: {str(e)}', 'danger')
+            return redirect(url_for('item_summary'))
     
-    stock_items = StockItem.query.all()
-    return render_template('stock_summary_form.html', stock_items=stock_items)
+    stock_items = StockItem.query.order_by(StockItem.item_name).all()
+    return render_template('item_summary_form.html', stock_items=stock_items)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
