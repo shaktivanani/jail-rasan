@@ -12,10 +12,27 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+
 @app.route('/')
 def index():
-    records = RasanRecord.query.order_by(RasanRecord.date.desc()).all()
-    return render_template('index.html', records=records)
+    page = request.args.get('page', 1, type=int)
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    query = RasanRecord.query.order_by(RasanRecord.date.desc())
+    
+    # Apply date filters if provided
+    if start_date:
+        query = query.filter(RasanRecord.date >= start_date)
+    if end_date:
+        query = query.filter(RasanRecord.date <= end_date)
+    
+    pagination = query.paginate(page=page, per_page=10)
+    
+    return render_template('index.html',
+                         records=pagination.items,
+                         pagination=pagination)
+
 
 @app.route('/add', methods=['GET', 'POST'])
 def add_record():
@@ -128,9 +145,33 @@ def delete_stock_item(id):
 # Stock Inventory CRUD
 @app.route('/stock_inventory')
 def stock_inventory():
-    inventory = StockInventory.query.order_by(StockInventory.date.desc()).all()
-    return render_template('stock_inventory/list.html', inventory=inventory)
-
+    page = request.args.get('page', 1, type=int)
+    item_id = request.args.get('item_id', type=int)
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    query = StockInventory.query.order_by(StockInventory.date.desc())
+    
+    # Apply filters
+    if item_id:
+        query = query.filter_by(stock_item_id=item_id)
+        selected_item = StockItem.query.get(item_id)
+    else:
+        selected_item = None
+        
+    if start_date:
+        query = query.filter(StockInventory.date >= start_date)
+    if end_date:
+        query = query.filter(StockInventory.date <= end_date)
+    
+    pagination = query.paginate(page=page, per_page=10)
+    all_items = StockItem.query.order_by(StockItem.item_name).all()
+    
+    return render_template('stock_inventory/list.html',
+                         inventory=pagination.items,
+                         pagination=pagination,
+                         all_items=all_items,
+                         selected_item=selected_item)
 @app.route('/stock_inventory/add', methods=['GET', 'POST'])
 def add_stock_inventory():
     stock_items = StockItem.query.order_by(StockItem.item_name).all()

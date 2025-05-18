@@ -3,12 +3,88 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Stock Inventory</h2>
-        <a href="{{ url_for('add_stock_inventory') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>Add New Entry
-        </a>
+        <h2 class="mb-0">Stock Inventory</h2>
+        <div>
+            <a href="{{ url_for('add_stock_inventory') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Add Entry
+            </a>
+        </div>
     </div>
 
+    <!-- Filter Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label for="item_filter" class="form-label">Filter by Item</label>
+                    <select class="form-select" id="item_filter" name="item_id" onchange="this.form.submit()">
+                        <option value="">All Items</option>
+                        {% for item in all_items %}
+                        <option value="{{ item.id }}" {% if selected_item and selected_item.id == item.id %}selected{% endif %}>
+                            {{ item.item_name }} ({{ item.unit }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" 
+                           value="{{ request.args.get('start_date', '') }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" 
+                           value="{{ request.args.get('end_date', '') }}">
+                </div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-funnel me-1"></i> Apply
+                    </button>
+                    <a href="{{ url_for('stock_inventory') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Card -->
+    {% if selected_item %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 class="card-title">{{ selected_item.item_name }}</h5>
+                    <p class="text-muted mb-0">{{ selected_item.description or 'No description' }}</p>
+                </div>
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <h6 class="text-muted">Total Entries</h6>
+                            <h4>{{ inventory|length }}</h4>
+                        </div>
+                        <div class="col-4 text-center">
+                            <h6 class="text-muted">Total Quantity</h6>
+                            <h4>{{ "%.2f"|format(inventory|sum(attribute='quantity')) }} {{ selected_item.unit }}</h4>
+                        </div>
+                        <div class="col-4 text-center">
+                            <h6 class="text-muted">Avg. Daily</h6>
+                            <h4>
+                                {% if inventory|length > 0 %}
+                                {{ "%.2f"|format(inventory|sum(attribute='quantity')/inventory|length) }} {{ selected_item.unit }}
+                                {% else %}
+                                0.00 {{ selected_item.unit }}
+                                {% endif %}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Inventory Table Card -->
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -26,9 +102,23 @@
                         {% for entry in inventory %}
                         <tr>
                             <td class="ps-3">{{ entry.date.strftime('%Y-%m-%d') }}</td>
-                            <td>{{ entry.stock_item.item_name }}</td>
-                            <td>{{ entry.quantity }} {{ entry.stock_item.unit }}</td>
-                            <td>{{ entry.notes or '-' }}</td>
+                            <td>
+                                <a href="{{ url_for('stock_inventory_by_item', item_id=entry.stock_item.id) }}" 
+                                   class="text-decoration-none">
+                                    {{ entry.stock_item.item_name }}
+                                </a>
+                            </td>
+                            <td>{{ "%.2f"|format(entry.quantity) }} {{ entry.stock_item.unit }}</td>
+                            <td>
+                                {% if entry.notes %}
+                                <span class="d-inline-block text-truncate" style="max-width: 200px;" 
+                                      data-bs-toggle="tooltip" title="{{ entry.notes }}">
+                                    {{ entry.notes }}
+                                </span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
                             <td class="text-end pe-3">
                                 <div class="btn-group" role="group">
                                     <a href="{{ url_for('edit_stock_inventory', id=entry.id) }}" 
@@ -49,6 +139,7 @@
                         <tr>
                             <td colspan="5" class="text-center py-4 text-muted">
                                 No inventory entries found
+                                {% if selected_item %}for {{ selected_item.item_name }}{% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -57,5 +148,63 @@
             </div>
         </div>
     </div>
+
+    <!-- Pagination -->
+    {% if pagination %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if pagination.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('stock_inventory', page=pagination.prev_num, item_id=request.args.get('item_id'), start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}">
+                    &laquo; Previous
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages() %}
+                {% if page_num %}
+                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('stock_inventory', page=page_num, item_id=request.args.get('item_id'), start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('stock_inventory', page=pagination.next_num, item_id=request.args.get('item_id'), start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}">
+                    Next &raquo;
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Set default dates for filter
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    if (!document.getElementById('start_date').value) {
+        document.getElementById('start_date').valueAsDate = firstDayOfMonth;
+    }
+    if (!document.getElementById('end_date').value) {
+        document.getElementById('end_date').valueAsDate = today;
+    }
+});
+</script>
 {% endblock %}

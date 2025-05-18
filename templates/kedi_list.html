@@ -37,38 +37,29 @@
         </div>
     </div>
 
-    <!-- In the Summary Card section, replace with: -->
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <div class="row text-center">
-            <div class="col-md-3">
-                <h6 class="text-muted">Total Records</h6>
-                <h4>{{ records|length }}</h4>
-            </div>
-            <div class="col-md-3">
-                <h6 class="text-muted">Total Kedi (M)</h6>
-                <h4>
-                    {% set total_m = records|sum(attribute='kedi_m') %}
-                    {{ "%.1f"|format(total_m) }}
-                </h4>
-            </div>
-            <div class="col-md-3">
-                <h6 class="text-muted">Total Kedi (F)</h6>
-                <h4>
-                    {% set total_f = records|sum(attribute='kedi_f') %}
-                    {{ "%.1f"|format(total_f) }}
-                </h4>
-            </div>
-            <div class="col-md-3">
-                <h6 class="text-muted"> Total</h6>
-                <h4>
-                    {% set kedi_totals = records|map(attribute='kedi_m')|list + records|map(attribute='kedi_f')|list %}
-                    {{ "%.1f"|format(kedi_totals|sum) }}
-                </h4>
+    <!-- Summary Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <h6 class="text-muted">Total Records</h6>
+                    <h4>{{ records|length }}</h4>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-muted">Avg. Kedi (M)</h6>
+                    <h4>{{ "%.1f"|format(records|sum(attribute='kedi_m')/records|length if records else 0) }}</h4>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-muted">Avg. Kedi (F)</h6>
+                    <h4>{{ "%.1f"|format(records|sum(attribute='kedi_f')/records|length if records else 0) }}</h4>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-muted">Avg. Total</h6>
+                    <h4>{{ "%.1f"|format(records|sum(attribute='kedi_total')/records|length if records else 0) }}</h4>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- Records Table Card -->
     <div class="card shadow-sm">
@@ -92,15 +83,15 @@
                     <tbody>
                         {% for record in records %}
                         <tr>
-                             <td class="ps-3">{{ record.date.strftime('%Y-%m-%d') }}</td>
-    <td>{{ record.kedi_m }}</td>
-    <td>{{ record.kedi_f }}</td>
-    <td class="fw-bold">{{ record.kedi_total() }}</td>
-    <td>{{ record.tifin_m }}</td>
-    <td>{{ record.tifin_f }}</td>
-    <td>{{ record.medical_m }}</td>
-    <td>{{ record.medical_f }}</td>
-    <td class="fw-bold text-primary">{{ record.total() }}</td>
+                            <td class="ps-3">{{ record.date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ record.kedi_m }}</td>
+                            <td>{{ record.kedi_f }}</td>
+                            <td class="fw-bold">{{ record.kedi_total() }}</td>
+                            <td>{{ record.tifin_m }}</td>
+                            <td>{{ record.tifin_f }}</td>
+                            <td>{{ record.medical_m }}</td>
+                            <td>{{ record.medical_f }}</td>
+                            <td class="fw-bold text-primary">{{ record.total() }}</td>
                             <td class="text-end pe-3">
                                 <div class="btn-group" role="group">
                                     <a href="{{ url_for('edit_record', id=record.id) }}" 
