@@ -32,11 +32,25 @@ def index():
     return render_template('index.html')
 
 # Routes for KEDI (Kitchen and Dining) management
+def get_date_filters(query):
+    # Example filter implementation
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    if start_date:
+        query = query.filter(RasanRecord.date >= start_date)
+    if end_date:
+        query = query.filter(RasanRecord.date <= end_date)
+    
+    return query
+
 @app.route('/kedi')
 def kedi():
-    # Paginate KEDI records with 10 items per page
     page = request.args.get('page', 1, type=int)
-    query = get_date_filters(RasanRecord).order_by(RasanRecord.date.desc())
+    # Create a query object first, then apply order_by
+    query = RasanRecord.query.order_by(RasanRecord.date.desc())
+    # Apply date filters if you have any (assuming get_date_filters modifies a query)
+    query = get_date_filters(query)
     pagination = query.paginate(page=page, per_page=10)
     return render_template('kedi/list.html',
                          records=pagination.items,
@@ -478,6 +492,7 @@ def daily_stock_movement():
     all_items = StockItem.query.order_by(StockItem.item_name).all()
     return render_template('daily_stock_movement/report.html',
                          all_items=all_items)
+
 @app.route('/export_daily_stock_movement', methods=['POST'])
 def export_daily_stock_movement():
     try:
