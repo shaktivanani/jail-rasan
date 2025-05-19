@@ -608,7 +608,6 @@ def export_daily_stock_movement():
         return redirect(url_for('daily_stock_movement'))
 
 
-
 @app.route('/export_daily_stock/excel', methods=['POST'])
 def export_daily_stock_excel():
     try:
@@ -650,6 +649,6 @@ def export_daily_stock_pdf():
     except Exception as e:
         flash(f'Error exporting PDF: {str(e)}', 'danger')
         return redirect(url_for('daily_stock_movement'))
-# Main entry point
+    
 if __name__ == '__main__':
     app.run(debug=True)
