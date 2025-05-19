@@ -32,10 +32,11 @@ class StockItem(db.Model):
     item_name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     unit = db.Column(db.String(20), nullable=False)  # kg, g, l, ml, etc.
+    # REMOVE: current_quantity (no longer needed)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
-        return f'<StockItem {self.item_name}>'
+        return f'<StockItem {self.item_name}>'    
     
 class StockInventory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
